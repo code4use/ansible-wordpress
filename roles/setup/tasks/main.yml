@@ -1,0 +1,20 @@
+---
+
+- name: Variable check
+  fail: msg="This role requires webmaster_password variable to be defined."
+  when: webmaster_password is not defined
+
+- user:
+    name: webmaster
+    shell: /bin/bash
+    password: "{{ webmaster_password|password_hash('sha512') }}"
+
+- name: Install miscellaneous
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - bash-completion
+
+

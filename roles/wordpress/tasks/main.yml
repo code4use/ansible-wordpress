@@ -1,0 +1,57 @@
+---
+
+- name: Variable check
+  fail: msg="This role requires database_user and database_password variable to be defined."
+  when: database_user is not defined or database_password is not defined
+
+- name: Check if wordpress already set up
+  stat: 
+    path: /var/www/wordpress
+  register: wp_out
+
+- name: Download wordpress
+  shell: wget -O /var/www/latest.tar.gz http://wordpress.org/latest.tar.gz
+  when: wp_out.stat.exists == False
+
+- name: Untar
+  shell: tar xf /var/www/latest.tar.gz -C /var/www && rm /var/www/latest.tar.gz
+  when: wp_out.stat.exists == False
+
+- name: Create upload directory
+  file:
+    path: /var/www/wordpress/wp-content/uploads
+    state: directory
+
+- name: Proper permissions
+  shell: chown -R www-data:www-data /var/www/wordpress
+
+- stat:
+    path: /var/www/wordpress/wp-config.php
+  register: config_out
+
+- name: Grab keys and salts
+  shell: wget -O /root/keysalt https://api.wordpress.org/secret-key/1.1/salt/ && cat /root/keysalt
+  register: keysalt
+  when: config_out.stat.exists == False
+
+- name: Write config
+  lineinfile: 
+    path: /var/www/wordpress/wp-config.php
+    create: yes
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - "<?php"
+    - "define('DB_NAME', 'wordpress');"
+    - "define('DB_USER', '{{ database_user }}');"
+    - "define('DB_PASSWORD', '{{ database_password }}');"
+    - "define('DB_HOST', 'localhost');"
+    - "define('DB_CHARSET', 'utf8');"
+    - "define('DB_COLLATE', '');"
+    - "{{ keysalt.stdout_lines }}"
+    - "$table_prefix  = 'wp_';"
+    - "define('WP_DEBUG', false);"
+    - "if ( !defined('ABSPATH') )"
+    - "        define('ABSPATH', dirname(__FILE__) . '/');"
+    - "require_once(ABSPATH . 'wp-settings.php');"
+  when: config_out.stat.exists == False

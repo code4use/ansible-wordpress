@@ -1,0 +1,23 @@
+---
+
+- name: Install ftp server
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items: 
+    - vsftpd
+
+- name: Configure ftp server
+  blockinfile:
+    path: /etc/vsftpd.conf
+    block: |
+      local_enable=YES 
+      write_enable=YES 
+      chroot_local_user=YES 
+      allow_writeable_chroot=YES
+
+- name: Reload ftp server
+  systemd:
+    name: vsftpd.service
+    state: reloaded

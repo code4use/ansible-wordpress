@@ -1,0 +1,30 @@
+---
+
+- name: Variable check
+  fail: msg="This role requires database_user and database_password variable to be defined."
+  when: database_user is not defined or database_password is not defined
+
+- name: Install database
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items: 
+    - mariadb-server
+    - mariadb-client
+
+- name: Create sql script
+  file:
+    state: touch
+    dest: /root/init.sql
+
+- name: Fill sql script
+  blockinfile:
+    path: /root/init.sql
+    block: |
+      CREATE DATABASE IF NOT EXISTS wordpress;
+      GRANT ALL PRIVILEGES ON wordpress.* TO {{ database_user }}@localhost IDENTIFIED BY "{{ database_password }}";
+      FLUSH PRIVILEGES;
+
+- name: Execute sql script
+  shell: cd /root && mysql -u "root" < "init.sql" && rm init.sql

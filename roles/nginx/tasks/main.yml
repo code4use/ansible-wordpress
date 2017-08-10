@@ -1,0 +1,55 @@
+---
+
+- name: Variable check 
+  fail: msg="This role requires domain_name variable to be defined."
+  when: domain_name is not defined
+
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: latest
+    update_cache: yes
+
+- file:
+    state: touch
+    path: /etc/nginx/sites-available/{{ domain_name }}
+
+- name: Configure nginx
+  blockinfile:
+    dest: /etc/nginx/sites-available/{{ domain_name }}
+    block: | 
+      server {
+       # Replace _ with your domain name if you have one
+       server_name _;
+       listen 80;
+
+       root /var/www/wordpress;
+       index index.php index.html;
+       location / {
+        try_files $uri $uri/ /index.php?$args;
+       }
+
+       location ~ .php$ {
+        try_files $uri /index.php;
+        include fastcgi_params;
+        fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_index index.php;
+       }
+      }
+
+- name: Enable website
+  file:
+    state: link
+    dest: /etc/nginx/sites-enabled/{{ domain_name }}
+    src: /etc/nginx/sites-available/{{ domain_name }}
+
+- name: Remove default nginx page
+  file:
+    state: absent
+    dest: /etc/nginx/sites-enabled/default
+
+- name: Reload daemon
+  systemd:
+    name: nginx
+    state: reloaded
