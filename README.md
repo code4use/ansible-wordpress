@@ -2,6 +2,6 @@
 
 Alex Foster 2017
 
-ansible-playbook -i hosts install.yml --extra-vars "webmaster_password=$STRONG_PASSWORD domain_name=$WWW.EXAMPLE.COM database_user=$DB_USER database_password=$ANOTHER_PASSWORD"
+ansible-playbook -i hosts install.yml --extra-vars "webmaster_password=$STRONG_PASSWORD domain_name=$DOMAIN database_user=$DB_USER database_password=$ANOTHER_PASSWORD"
 
 This playbook also creates user named "webmaster" on target systems.

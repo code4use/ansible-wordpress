@@ -6,12 +6,9 @@
 
 - name: Install database
   apt:
-    name: "{{ item }}"
+    name: [ "mariadb-server", "mariadb-client" ]
     state: latest
     update_cache: yes
-  with_items: 
-    - mariadb-server
-    - mariadb-client
 
 - name: Create sql script
   file:

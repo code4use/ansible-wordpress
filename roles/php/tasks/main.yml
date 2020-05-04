@@ -2,19 +2,6 @@
 
 - name: Install PHP
   apt:
-    name: "{{ item }}"
+    name: [ "php7.4-fpm", "php7.4", "php7.4-cli", "php7.4-mysql", "php7.4-gd", "php7.4-xml", "php7.4-xmlrpc", "php7.4-curl", "php7.4-mbstring", "php7.4-zip", "php7.4-imagick" ]
     state: latest
-    update_cache: yes
-  with_items: 
-    - php7.0-fpm
-    - php7.0-common
-    - php7.0-cli
-    - php7.0-mysql
-    - php7.0-gd
-    - php7.0-xml
-    - php7.0-xmlrpc
-    - php7.0-curl
-    - php7.0-mbstring
-    - php7.0-mcrypt
-    - php7.0-zip
 
